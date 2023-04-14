@@ -45,7 +45,7 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(input: String) -> Self {
         Self {
-            input,
+            input: input.to_string().replace("λ", "\\").to_string(),
             output: vec![],
             line: 1,
             column: 0,
@@ -122,8 +122,16 @@ impl Lexer {
         while !self.is_eof() && !stop.contains(&self.peek()) {
             self.consume();
         }
+
         let symbol = self.input[self.start..self.curr].to_owned();
-        self.add_token(TType::Symbol(symbol));
+        
+        match symbol.as_str() {
+            "defun" => self.add_token(TType::Func),
+            "defmacro" => self.add_token(TType::Macro),
+            "let" => self.add_token(TType::Let),
+            "lambda" | "\\" | "λ" => self.add_token(TType::Lambda),
+            _ => self.add_token(TType::Symbol(symbol))
+        }
     }
 
     pub fn tokenize(&mut self) {
@@ -135,7 +143,7 @@ impl Lexer {
             '"' => self.string(),
             c => if ((c == '+' || c == '-') && self.peek().is_digit(10)) || c.is_digit(10) {
                 self.number();
-            } else if c.is_alphabetic() {
+            } else if c.is_ascii() {
                 self.identifier();
             } else {
                 panic!("Unexpected token: {}", c)
