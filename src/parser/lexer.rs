@@ -2,28 +2,27 @@
 
 // Today, Thursday 13 April 2023 at 21:43:09, I am 15 y.o. and I make my first step in the world of programming language development.
 
-use std::thread::current;
-
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TType {
     LParen,
     RParen,
     Quote,
+    Unquote,
     Integer(i64),
     String(String),
     Float(f64),
     Symbol(String),
     Macro,
-    Func,
+    Define,
     Lambda,
-    Let
+    Var
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Token {
-    ttype: TType,
-    line: usize,
-    column: usize
+    pub ttype: TType,
+    pub line: usize,
+    pub column: usize
 }
 
 impl Token {
@@ -35,7 +34,7 @@ impl Token {
 #[derive(Debug)]
 pub struct Lexer {
     input: String,
-    output: Vec<Token>,
+    pub output: Vec<Token>,
     line: usize,
     column: usize,
     curr: usize,
@@ -126,10 +125,10 @@ impl Lexer {
         let symbol = self.input[self.start..self.curr].to_owned();
         
         match symbol.as_str() {
-            "defun" => self.add_token(TType::Func),
-            "defmacro" => self.add_token(TType::Macro),
-            "let" => self.add_token(TType::Let),
-            "lambda" | "\\" | "λ" => self.add_token(TType::Lambda),
+            "define" => self.add_token(TType::Define),
+            "macro" => self.add_token(TType::Macro),
+            "var" => self.add_token(TType::Var),
+            "lambda" | "\\" => self.add_token(TType::Lambda),
             _ => self.add_token(TType::Symbol(symbol))
         }
     }
@@ -139,14 +138,20 @@ impl Lexer {
             ' ' | '\n' | '\r' | '\t' => {}
             '(' => self.add_token(TType::LParen),
             ')' => self.add_token(TType::RParen),
-            '\'' => self.add_token(TType::Quote),
+            '\'' => {
+                if self.peek() == ' ' {
+                    panic!("It seems that there is a space between the quotation mark and what you are quoting.Remove that space.");
+                }
+                self.add_token(TType::Quote)
+            }
+            ',' => self.add_token(TType::Unquote),
             '"' => self.string(),
             c => if ((c == '+' || c == '-') && self.peek().is_digit(10)) || c.is_digit(10) {
                 self.number();
             } else if c.is_ascii() {
                 self.identifier();
             } else {
-                panic!("Unexpected token: {}", c)
+                panic!("Unexpected token: {} ({}:{})", c, self.line, self.column)
             }
         }
     }
