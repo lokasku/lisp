@@ -1,7 +1,13 @@
-(define add (x y)
-     (+ x y))
+(cond ((> 1 2) 1)
+      (t (o-k "ok" 2)))
 
-(macro double (x)
-       '(* 2 ,x))
+(macro foo (u o)
+  (print "hel")
+  (print "lo"))
 
-(var foo "hello, world")
+(define bar (x)
+  x)
+
+(var *egg* (- +10 -10))
+
+(\ (x) (+ (* 2 x) 1))

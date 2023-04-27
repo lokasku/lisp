@@ -11,11 +11,7 @@ pub enum TType {
     Integer(i64),
     String(String),
     Float(f64),
-    Symbol(String),
-    Macro,
-    Define,
-    Lambda,
-    Var
+    Symbol(String)
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -125,10 +121,8 @@ impl Lexer {
         let symbol = self.input[self.start..self.curr].to_owned();
         
         match symbol.as_str() {
-            "define" => self.add_token(TType::Define),
-            "macro" => self.add_token(TType::Macro),
-            "var" => self.add_token(TType::Var),
-            "lambda" | "\\" => self.add_token(TType::Lambda),
+            "define" | "macro" | "var" | "cond" => self.add_token(TType::Symbol(symbol)),
+            "lambda" | "\\" => self.add_token(TType::Symbol("lambda".to_owned())),
             _ => self.add_token(TType::Symbol(symbol))
         }
     }

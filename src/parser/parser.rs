@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use std::thread::current;
+
 use crate::parser::lexer::{
     Token,
     TType
@@ -8,13 +10,13 @@ use crate::parser::lexer::{
 #[derive(Debug)]
 pub enum  Expr {
     List(Vec<Expr>),
-    Operator(String),
     String(String),
     Integer(i64),
     Float(f64),
     Define,
     Macro,
     Var,
+    Cond,
     Lambda,
     Symbol(String) 
 }
@@ -40,13 +42,13 @@ impl Parser {
         self.input.iter().nth(self.curr - 1).unwrap().clone()
     }
     
-    pub fn consume_and_check(&mut self, predicate: TType) -> Token {
+    pub fn consume_and_check(&mut self, predicate: TType) -> TType {
         self.curr += 1;
         let current_token = self.input.iter().nth(self.curr - 1).unwrap();
         if current_token.ttype == predicate {
-            current_token.clone()
+            current_token.ttype.clone()
         } else {
-            panic!("Expected {:?}, {:?} find. ({:?}:{:?})",
+            panic!("Expected {:?}, found {:?}. ({:?}:{:?})",
                 predicate,
                 current_token.ttype,
                 current_token.line,
@@ -69,18 +71,104 @@ impl Parser {
         
         match ct.ttype {
             TType::LParen => {
-                let mut content = vec![];
-                while !self.is_eof() && self.peek() != TType::RParen {
-                    content.push(self.parse_one());
-                }
+                let operator = self.consume();
 
-                if self.is_eof() {
-                    panic!("Unclosed parenthesis ({}:{}).", ct.line, ct.column);
-                }
+                match operator.ttype {
+                    TType::Symbol(s) => match s.as_str() {
+                        "macro" | "define" | "lambda" => {
+                            let mut content = vec![]; // (macro/define
+                            let op = s.as_str();
+                        
+                            if op == "macro" {
+                                content.push(Expr::Macro)
+                            } else if op == "define" {
+                                content.push(Expr::Define)
+                            } else {
+                                content.push(Expr::Lambda)
+                            }
+                            
+                            if op != "lambda" {
+                                let name = self.parse_one(); // (... name
+        
+                                if let Expr::Symbol(s) = name {
+                                    content.push(Expr::Symbol(s))
+                                } else {
+                                    panic!("Expected a symbol as name, found {:?} ({}:{}).", name, ct.line, ct.column)
+                                }
+                            }
+    
+                            self.consume_and_check(TType::LParen); //  (.. .. (
+                            
+                            let mut args = vec![];
+                            while !self.is_eof() && self.peek() != TType::RParen { // (.. .. (a1 a2 ... aK
+                                let arg = self.parse_one();
+                                if let Expr::Symbol(s) = arg {
+                                    args.push(Expr::Symbol(s))
+                                } else {
+                                    panic!("Expected symbol as parameter, found {:?} ({:?}:{:?}).", arg, ct.line, ct.column)
+                                }
+                            }
+    
+                            content.push(Expr::List(args));
+    
+                            self.consume_and_check(TType::RParen); // (.. .. (..)
+    
+                            while !self.is_eof() && self.peek() != TType::RParen { // (.. .. (..) exp1 exp2 ... expK
+                                let expr = self.parse_one();
+                                content.push(expr);
+                            }
+    
+                            self.consume_and_check(TType::RParen); // (.. .. (..) ..)
+    
+                            Expr::List(content)
+                        }
+                        "var" => {
+                            let mut content = vec![Expr::Var]; // (var
+                        
+                            let name = self.parse_one(); // (.. name
+                            if let Expr::Symbol(s) = name {
+                                content.push(Expr::Symbol(s));
+                            } else {
+                                panic!("Expected a symbol as name, found {:?} ({}:{}).", name, ct.line, ct.column);
+                            }
 
-                self.consume(); // move after the right paren
-                Expr::List(content)
+                            content.push(self.parse_one()); // (.. .. exp
+                            self.consume_and_check(TType::RParen); // (.. .. ..)
+                            Expr::List(content)
+                        }
+                        "cond" => {
+                            let mut content = vec![Expr::Cond];
+                                                        
+                            while !self.is_eof() && self.peek() != TType::RParen {
+                                self.consume_and_check(TType::LParen); // (.. (
+
+                                let boolean = self.parse_one(); // (.. (bool
+                                let exp = self.parse_one(); // (.. (.. expr
+
+                                content.push(Expr::List(vec![boolean, exp]));
+
+                                self.consume_and_check(TType::RParen); // (.. (.. ..)
+                            }
+
+                            self.consume_and_check(TType::RParen); // (.. (.. ..)
+                                                                   //       .... )
+                            Expr::List(content)
+                        }
+                        o => {
+                            let mut content = vec![Expr::Symbol(o.to_owned())]; // (op
+
+                            while !self.is_eof() && self.peek() != TType::RParen { // (.. arg1 arg2
+                                content.push(self.parse_one());
+                            }
+
+                            self.consume(); // (.. ....)
+                            Expr::List(content)
+                        }
+                    }
+                    o => panic!("Expected an operator, found {:?} ({:?}:{:?}).", o, ct.line, ct.column)
+                }
             }
+            TType::Symbol(s) => Expr::Symbol(s),
             TType::Quote => {
                 let next_expr = self.parse_one();
                 Expr::List(vec![Expr::Symbol("quote".to_owned()), next_expr])
@@ -92,12 +180,7 @@ impl Parser {
             TType::Integer(i) => Expr::Integer(i),
             TType::String(s) => Expr::String(s),
             TType::Float(f) => Expr::Float(f),
-            TType::Symbol(s) => Expr::Symbol(s),
-            TType::Macro => Expr::Macro,
-            TType::Define => Expr::Define,
-            TType::Var => Expr::Var,
-            TType::Lambda => Expr::Lambda,
-            TType::RParen => panic!("RPAREN BRO!")
+            TType::RParen => panic!("Unexpected closing parenthesis ({:?}:{:?}).", ct.line, ct.column)
         }
     }
 
@@ -106,7 +189,7 @@ impl Parser {
             let expr = self.parse_one();
             match expr {
                 Expr::List(_) => self.output.push(expr),
-                _ => panic!("Expected List, found {:?}.", expr)
+                _ => panic!("Expected list, found {:?}.", expr)
             }
         }
     }
