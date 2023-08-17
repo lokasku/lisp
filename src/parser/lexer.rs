@@ -43,7 +43,7 @@ impl Lexer {
             input: input.to_string().replace("λ", "\\").to_string(),
             output: vec![],
             line: 1,
-            column: 0,
+            column: 1,
             curr: 0,
             start: 0
         }
@@ -102,8 +102,12 @@ impl Lexer {
         while !self.is_eof() && (self.peek().is_digit(10) || self.peek() == '.') {
             self.consume();
         }
-        
+
         let number = self.input[self.start..self.curr].to_owned();
+
+        if number.chars().filter(|c| *c == '.').count() > 1 {
+            panic!("A floating-point number can only contain one dot to delimit the integer part from the decimal part. ({}:{})", self.line, self.column);
+        }
 
         match number.parse::<i64>() {
             Ok(n) => self.add_token(TType::Integer(n)),
@@ -121,7 +125,6 @@ impl Lexer {
         let symbol = self.input[self.start..self.curr].to_owned();
         
         match symbol.as_str() {
-            "define" | "macro" | "var" | "cond" => self.add_token(TType::Symbol(symbol)),
             "lambda" | "\\" => self.add_token(TType::Symbol("lambda".to_owned())),
             _ => self.add_token(TType::Symbol(symbol))
         }
@@ -134,19 +137,19 @@ impl Lexer {
             ')' => self.add_token(TType::RParen),
             '\'' => {
                 if self.peek() == ' ' {
-                    panic!("It seems that there is a space between the quotation mark and what you are quoting.Remove that space.");
+                    panic!("It seems that there is a space between the quotation mark and what you are quoting. Remove that space. ({}:{})", self.line, self.column);
                 }
                 self.add_token(TType::Quote)
             }
             ',' => self.add_token(TType::Unquote),
             '"' => self.string(),
             c => if ((c == '+' || c == '-') && self.peek().is_digit(10)) || c.is_digit(10) {
-                self.number();
-            } else if c.is_ascii() {
-                self.identifier();
-            } else {
-                panic!("Unexpected token: {} ({}:{})", c, self.line, self.column)
-            }
+                     self.number();
+                 } else if c.is_ascii() {
+                     self.identifier();
+                 } else {
+                     panic!("Unexpected token: {} ({}:{})", c, self.line, self.column)
+                 }
         }
     }
 

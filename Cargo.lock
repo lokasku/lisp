@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "lindar"
+name = "wafl"
 version = "0.1.0"
