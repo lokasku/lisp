@@ -2,6 +2,8 @@
 
 // Today, Thursday 13 April 2023 at 21:43:09, I am 15 y.o. and I make my first step in the world of programming language development.
 
+use crate::stream::Stream;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum TType {
     LParen,
@@ -32,7 +34,7 @@ pub struct Lexer {
     input: String,
     pub output: Vec<Token>,
     line: usize,
-    column: usize,
+    pub column: usize,
     curr: usize,
     start: usize
 }
@@ -122,7 +124,7 @@ impl Lexer {
             self.consume();
         }
 
-        let symbol = self.input[self.start..self.curr].to_owned();
+        let symbol = self.input[self.start..self.curr].to_lowercase().to_owned();
         
         match symbol.as_str() {
             "lambda" | "\\" => self.add_token(TType::Symbol("lambda".to_owned())),
@@ -151,6 +153,25 @@ impl Lexer {
                      panic!("Unexpected token: {} ({}:{})", c, self.line, self.column)
                  }
         }
+    }
+
+
+    pub fn lex_expr(&mut self) {
+        let mut n = 1;
+
+        if self.peek() == '(' {
+            self.consume();
+            self.add_token(TType::LParen);
+            while !self.is_eof() && self.current_char() != ')' {
+                self.tokenize();
+                if self.current_char() == '(' { n += 1 }
+                else if self.current_char() == ')' && n != 1 {
+                    self.tokenize();
+                    n -= 1;
+                }
+            }
+        }
+        else { self.tokenize(); }
     }
 
     pub fn lex(&mut self) {

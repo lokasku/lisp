@@ -1,3 +1,4 @@
-(zeigoznego "oooniolh" 3.1215987538 ((((nil)) okokokok)) thx "mesa")
-(define macro lambda var "okokok" OO 44)
-((((((nil))))))
+(DEFINE FOO (A B C)
+    (\ (K) (+ A B C K)))
+(LAMBDA (X) X)
+(VAR *ok* (- -1 -2))

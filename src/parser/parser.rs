@@ -5,7 +5,7 @@ use crate::parser::lexer::{
     TType
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Atom {
     Symbol(String),
     String(String),
@@ -13,7 +13,7 @@ pub enum Atom {
     Float(f64)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     Atom(Atom),
     List(Vec<Expr>),
@@ -69,27 +69,27 @@ impl Parser {
         let ct = self.consume();
 
         match ct.ttype {
-	    TType::LParen => {
-		let mut args: Vec<Expr> = vec![];
+            TType::LParen => {
+    	        let mut args: Vec<Expr> = vec![];
 		while !self.is_eof() && self.peek() != TType::RParen {
-    		    args.push(self.parse_expr());
-		}
-		self.consume();
+                    args.push(self.parse_expr());
+                }
+                self.consume();
 		Expr::List(args)
 	    }
-    	    TType::Quote => {
-        	    let next_symbol = self.parse_expr();
-        	    Expr::Quote(Box::new(next_symbol))
-    	    }
-    	    TType::Unquote => {
-        	    let next_symbol = self.parse_expr();
-        	    Expr::Unquote(Box::new(next_symbol))
-    	    }
-    	    TType::Symbol(s) => Expr::Atom(Atom::Symbol(s)),
-    	    TType::String(s) => Expr::Atom(Atom::String(s)),
-    	    TType::Integer(i) => Expr::Atom(Atom::Integer(i)),
-    	    TType::Float(f) => Expr::Atom(Atom::Float(f)),
-    	    TType::RParen => panic!("Unexpected closing parenthesis ({:?}:{:?}).", ct.line, ct.column)
+            TType::Quote => {
+                let next_symbol = self.parse_expr();
+                Expr::Quote(Box::new(next_symbol))
+            }
+            TType::Unquote => {
+                let next_symbol = self.parse_expr();
+                Expr::Unquote(Box::new(next_symbol))
+            }
+            TType::Symbol(s) => Expr::Atom(Atom::Symbol(s)),
+            TType::String(s) => Expr::Atom(Atom::String(s)),
+            TType::Integer(i) => Expr::Atom(Atom::Integer(i)),
+            TType::Float(f) => Expr::Atom(Atom::Float(f)),
+            TType::RParen => panic!("Unexpected closing parenthesis ({:?}:{:?}).", ct.line, ct.column)
         }
     }
 
