@@ -43,7 +43,7 @@
               "cargo" "rustc" "rust-src" "rustfmt" "clippy"
             ])
           ];
-          RUST_BACKTRACE = 1;
+          RUST_BACKTRACE = 0;
         };
       });
 }
