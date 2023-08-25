@@ -1,3 +1,4 @@
+use std::fmt;
 use logos::{
     Logos,
     Lexer as LogosLexer,
@@ -49,6 +50,20 @@ pub enum Token {
     Float(f64)
 }
 
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Token::LParen => write!(f, "("),
+            Token::RParen => write!(f, ")"),
+            Token::Quote => write!(f, "'"),
+            Token::Unquote => write!(f, ","),
+            Token::Symbol(s) | Token::String(s) => write!(f, "{}", s.to_uppercase()),
+            Token::Int(i) => write!(f, "i{}", i),
+            Token::Float(d) => write!(f, "f{}", d)
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum Error {
     InvalidChar(Span, String),
@@ -84,7 +99,7 @@ impl<'src> Lexer<'src> {
             }
             TType::Float => match self.input.slice().parse::<f64>() {
                 Ok(f) => Ok(Token::Float(f)),
-                Err(_) => Err(Error::IntParsingError(self.input.span()))
+                Err(_) => Err(Error::FloatParsingError(self.input.span()))
             }
         }
     }
@@ -103,6 +118,9 @@ impl<'src> Iterator for Lexer<'src> {
                 }
             }
         };
-        Some(token.unwrap())
+        match token {
+            Ok(tk) => Some(tk),
+            Err(_) => None
+        }
     }
 }

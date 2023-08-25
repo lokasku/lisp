@@ -2,7 +2,6 @@ mod lexer;
 
 use std::fs;
 use std::env;
-use logos::Logos;
 
 use lexer::Lexer;
 
@@ -15,8 +14,11 @@ fn main() {
     let content = fs::read_to_string(args[1].clone()).expect("Cannot read file for some reasons.");
 
     let mut lexer = Lexer::new(&content);
-    for i in 0..30 {
-        dbg!(&lexer.next());
-        dbg!(&lexer.errors);
+    for _ in 0..30 {
+        match lexer.next() {
+            Some(tk) => print!("{} ", tk),
+            None => {}
+        }
     }
+    dbg!(&lexer.errors);
 }
