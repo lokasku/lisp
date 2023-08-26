@@ -1,5 +1,5 @@
 {
-  description = "Wait, another fucking Lisp ?";
+  description = "Desugar LISP implementation of McCarthy's Meta-Circular Evaluator.";
   
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
@@ -28,13 +28,13 @@
           inherit (toolchain) cargo rustc;
         };
 
-        wafl = naersk-lib.buildPackage {
-          name = "wafl";
+        lisp = naersk-lib.buildPackage {
+          name = "lisp";
           src = ./.;
         };
       in {
-        packages.wafl = wafl;
-        defaultPackage = self.packages.${system}.wafl;
+        packages.lisp = lisp;
+        defaultPackage = self.packages.${system}.lisp;
 
         devShell = pkgs.mkShell {
           inputsFrom = builtins.attrValues self.packages.${system};
