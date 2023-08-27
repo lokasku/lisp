@@ -14,7 +14,7 @@ fn main() {
     let content = fs::read_to_string(args[1].clone()).expect("Cannot read file for some reasons.");
 
     let mut lexer = Lexer::new(&content);
-    for _ in 0..10 {
+    for _ in 0..30 {
     	dbg!(&lexer.next());
     }
     dbg!(&lexer);
