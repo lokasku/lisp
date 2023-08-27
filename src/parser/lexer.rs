@@ -6,7 +6,7 @@ use crate::parser::{
     Position
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TType {
     LParen,
     RParen,
@@ -16,11 +16,11 @@ pub enum TType {
     Float(f32)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Token {
-    ttype: TType,
-    line: usize,
-    column: usize
+    pub ttype: TType,
+    pub line: usize,
+    pub column: usize
 }
 
 const SYMBOL_CHARS: [char; 5] = ['-', '+', '*', '|', '~'];
@@ -80,6 +80,7 @@ impl<'src> Lexer<'src> {
             match c {
                 '\n' | '\r' => {
                     self.line += 1;
+                    self.column = 0;
                     self.curr += 1;
                 }
                 '\t' | ' ' => {

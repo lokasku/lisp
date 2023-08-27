@@ -1,2 +1,2 @@
-(lambda (a b) (+ -1.24 +124) salut 92)
-(var *a* "string" weak)
+(lambda (a b) (+ a (- -12.234 b)))
+(var *a* (+ +23 -3.3))
