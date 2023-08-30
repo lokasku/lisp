@@ -1,10 +1,8 @@
 use std::str::Chars;
 use std::iter::Peekable;
 
-use crate::parser::{
-    ReadError,
-    Position
-};
+use crate::parser::Position;
+use crate::errors::ReadError;
 
 #[derive(Debug, PartialEq)]
 pub enum TType {

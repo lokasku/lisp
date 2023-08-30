@@ -1,16 +1,16 @@
+use std::fmt;
 use std::iter::Peekable;
 
-use crate::parser::{
-    ReadError,
-    Position
-};
+use crate::parser::Position;
+use crate::errors::ReadError;
+
 use crate::parser::lexer::{
     Lexer,
     Token,
     TType
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Atom {
     Symbol(String),
     String(String),
@@ -18,22 +18,37 @@ pub enum Atom {
     Float(f32)
 }
 
-#[derive(Debug)]
+impl fmt::Display for Atom {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Atom::Symbol(s) => write!(f, "{} ", s),
+            Atom::String(s) => write!(f, "\"{}\" ", s),
+            Atom::Integer(n) => write!(f, "{} ", n),
+            Atom::Float(n) => write!(f, "{} ", n)
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum SexpT {
     Atom(Atom),
     List(Vec<Sexp>)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Sexp {
-    sexpt: SexpT,
-    line: usize,
-    column: usize
+    pub sexpt: SexpT,
+    /* pub line: usize,
+    pub column: usize */
+    pub pos: Position
 }
 
 impl Sexp {
     pub fn new(sexpt: SexpT, line: usize, column: usize) -> Self {
-        Self { sexpt, line, column }
+        Self {
+            sexpt,
+            pos: Position::new(line, column)
+        }
     }
 }
 
