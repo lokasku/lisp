@@ -26,6 +26,7 @@ impl fmt::Display for ReadError {
     }
 }
 
+#[derive(Debug)]
 pub enum EvalError {
     IllegalFunctionCall(Position),
     ArityMismatch(String, usize, usize, Position),
@@ -46,6 +47,21 @@ impl fmt::Display for EvalError {
                     pos.0, pos.1
                 ),
             Self::ReadError(re) => ReadError::fmt(re, f)
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum Error {
+    ReadError(ReadError),
+    EvalError(EvalError)
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ReadError(re) => ReadError::fmt(re, f),
+            Self::EvalError(er) => EvalError::fmt(er, f)
         }
     }
 }

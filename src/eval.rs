@@ -5,22 +5,23 @@ use crate::parser::parser::{
     Atom
 };
 use crate::errors::{
-    ReadError,
-    EvalError
+    EvalError,
+    Error
 };
 use crate::builtins;
 
 const PRIMITIVES: [&str; 8] = ["car", "cdr", "cons", "atom", "quote", "lambda", "cond", "eq"];
 
-fn args_checker(name: String, expected: usize, args: Vec<Sexp>, pos: Position) -> Result<(), EvalError> {
+fn args_checker(name: String, expected: usize, args: Vec<Sexp>, pos: Position) -> Result<(), Error> {
     let amount = args.len() - 1; // operator is not included
     match amount == expected {
         true => Ok(()),
-        false => Err(EvalError::ArityMismatch(name, amount, expected, pos))
+        false => Err(Error::EvalError(EvalError::ArityMismatch(name, amount, expected, pos)))
     }
 }
 
-pub fn eval(ast: Result<Sexp, ReadError>) -> Result<Sexp, EvalError> {
+pub fn eval(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
+    println!("CALL TO EVAL");
     match ast {
         Ok(ref sexp @ Sexp { ref sexpt, pos }) => match sexpt {
             SexpT::Atom(atom) => match atom {
@@ -28,7 +29,7 @@ pub fn eval(ast: Result<Sexp, ReadError>) -> Result<Sexp, EvalError> {
                     if PRIMITIVES.contains(&s.as_str()) {
                         return Ok(sexp.clone())
                     }
-                    Err(EvalError::UnboundSymbol(s.to_owned(), pos))
+                    Err(Error::EvalError(EvalError::UnboundSymbol(s.to_owned(), pos)))
                 }
                 _ => Ok(sexp.clone()) }
             SexpT::List(v) => match v.get(0) {             // Vec<Sexp>
@@ -47,19 +48,18 @@ pub fn eval(ast: Result<Sexp, ReadError>) -> Result<Sexp, EvalError> {
                                 }
                                 Ok(builtins::quote(v.get(1).unwrap().clone()))
                             }
-                            _ => Err(EvalError::UnboundSymbol(sn.to_owned(), *pos))
+                            _ => Err(Error::EvalError(EvalError::UnboundSymbol(sn.to_owned(), *pos)))
                         }
-                        _ => Err(EvalError::IllegalFunctionCall(*pos))
+                        _ => Err(Error::EvalError(EvalError::IllegalFunctionCall(*pos)))
 
                     }
                     _ => todo!()
                 }
                 None => Ok(sexp.clone()),
-                _ => todo!()
             }
         }
         Err(e) => {
-            Err(EvalError::ReadError(e))
+            Err(e)
         }
     }
 }

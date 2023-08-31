@@ -2,7 +2,10 @@ use std::fmt;
 use std::iter::Peekable;
 
 use crate::parser::Position;
-use crate::errors::ReadError;
+use crate::errors::{
+    Error,
+    ReadError
+};
 
 use crate::parser::lexer::{
     Lexer,
@@ -52,6 +55,29 @@ impl Sexp {
     }
 }
 
+
+pub fn quote(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
+    match ast {
+        Ok(ast) => Ok(
+            Sexp::new(
+                SexpT::List(
+                    vec![
+                        Sexp::new(
+                            SexpT::Atom(Atom::Symbol("quote".to_owned())),
+                            0,
+                            0
+                        ),
+                        ast
+                    ]
+                ),
+                0,
+                0
+            )
+        ),
+        Err(e) => Err(e)
+    }
+}
+
 #[derive(Debug)]
 pub struct Parser<'src> {
     input: Peekable<Lexer<'src>>
@@ -63,7 +89,7 @@ impl<'src> Parser<'src> { pub fn new(input: &'src str) -> Self {
         }
     }
 
-    pub fn read(&mut self) -> Result<Sexp, ReadError> {
+    pub fn read(&mut self) -> Result<Sexp, Error> {
         match self.input.next() {
             Some(result) => match result {
                 Ok(Token {ttype, line, column }) => match ttype {
@@ -80,21 +106,20 @@ impl<'src> Parser<'src> { pub fn new(input: &'src str) -> Self {
                                     Err(_) => return self.read(), // we know that this call will return the error
                                     _ => content.push(self.read()?)
                                 }
-                                None => return Err(ReadError::UnclosedParen(Position(line, column)))
+                                None => return Err(Error::ReadError(ReadError::UnclosedParen(Position(line, column))))
                             }
                         }
-
                         Ok(Sexp::new(SexpT::List(content), line, column))
                     }
-                    TType::RParen => Err(ReadError::UnexpectedClosingParen(Position(line, column))),
+                    TType::RParen => Err(Error::ReadError(ReadError::UnexpectedClosingParen(Position(line, column)))),
                     TType::Symbol(s) => Ok(Sexp::new(SexpT::Atom(Atom::Symbol(s)), line, column)),
                     TType::String(s) => Ok(Sexp::new(SexpT::Atom(Atom::String(s)), line, column)),
                     TType::Integer(i) => Ok(Sexp::new(SexpT::Atom(Atom::Integer(i)), line, column)),
-                    TType::Float(f) => Ok(Sexp::new(SexpT::Atom(Atom::Float(f)), line, column)),
+                    TType::Float(f) => Ok(Sexp::new(SexpT::Atom(Atom::Float(f)), line, column))
                 }
                 Err(err) => Err(err)
             }
-            None => Err(ReadError::UnexpectedEOF)
+            None => Err(Error::ReadError(ReadError::UnexpectedEOF))
         }
     }
 }

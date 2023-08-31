@@ -6,10 +6,17 @@ pub mod builtins;
 use std::fs;
 use std::env;
 
-use parser::parser::Parser;
+use parser::parser::{
+    quote,
+    Parser
+};
 use eval::eval;
 
-use crate::errors::ReadError;
+use crate::errors::{
+    ReadError,
+    EvalError,
+    Error
+};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -23,7 +30,7 @@ fn main() {
 
     loop {
         let ast = parser.read();
-        if let Err(ReadError::UnexpectedEOF) = ast {
+        if let Err(Error::ReadError(ReadError::UnexpectedEOF)) = ast {
             break;
         } else {
             builtins::print(eval(ast));

@@ -2,7 +2,10 @@ use std::str::Chars;
 use std::iter::Peekable;
 
 use crate::parser::Position;
-use crate::errors::ReadError;
+use crate::errors::{
+    Error,
+    ReadError
+};
 
 #[derive(Debug, PartialEq)]
 pub enum TType {
@@ -34,7 +37,7 @@ pub struct Lexer<'src> {
 }
 
 impl<'src> Iterator for Lexer<'src> {
-    type Item = Result<Token, ReadError>;
+    type Item = Result<Token, Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let next_char = self.consume()?;
@@ -55,7 +58,7 @@ impl<'src> Iterator for Lexer<'src> {
             } else if c.is_alphabetic() || SYMBOL_CHARS.contains(&c) {
                 Some(self.symbol())
             } else {
-                Some(Err(ReadError::UnexpectedChar(c, Position::new(self.line, self.column))))
+                Some(Err(Error::ReadError(ReadError::UnexpectedChar(c, Position::new(self.line, self.column)))))
             }
         }
     }
@@ -101,20 +104,20 @@ impl<'src> Lexer<'src> {
             column: self.start
         }
     }
-    pub fn string(&mut self) -> Result<Token, ReadError> {
+    pub fn string(&mut self) -> Result<Token, Error> {
         self.start = self.curr;
         while self.input_as_chars.peek() != Some(&'"') && !self.is_eof() {
             self.consume();
         }
         if self.is_eof() && self.input_as_chars.peek() != Some(&'"') {
-            return Err(ReadError::UnclosedString(Position::new(self.line, self.start)));
+            return Err(Error::ReadError(ReadError::UnclosedString(Position::new(self.line, self.start))));
         }
         let raw = self.input_as_str[self.start..self.curr].to_owned();
         self.consume();
 
         Ok(self.build_token(TType::String(raw)))
     }
-    pub fn symbol(&mut self) -> Result<Token, ReadError> {
+    pub fn symbol(&mut self) -> Result<Token, Error> {
         self.start = self.curr;
         while (
             self.input_as_chars.peek().unwrap().is_ascii_alphanumeric()
@@ -126,7 +129,7 @@ impl<'src> Lexer<'src> {
         let raw = self.input_as_str[self.start-1..self.curr].to_owned();
         Ok(self.build_token(TType::Symbol(raw)))
     }
-    pub fn number(&mut self) -> Result<Token, ReadError> {
+    pub fn number(&mut self) -> Result<Token, Error> {
         self.start = self.curr;
         while (self.input_as_chars.peek().unwrap().is_digit(10) || self.input_as_chars.peek().unwrap() == &'.') && !self.is_eof() {
             self.consume();
@@ -136,7 +139,7 @@ impl<'src> Lexer<'src> {
             Ok(i) => Ok(self.build_token(TType::Integer(i))),
             Err(_) => match raw.parse::<f32>() {
                 Ok(f) => Ok(self.build_token(TType::Float(f))),
-                Err(_) => Err(ReadError::IncorrectNumber(raw, Position::new(self.line, self.start)))
+                Err(_) => Err(Error::ReadError(ReadError::IncorrectNumber(raw, Position::new(self.line, self.start))))
             }
         }
     }

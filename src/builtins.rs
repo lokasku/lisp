@@ -1,13 +1,14 @@
-use std::unimplemented;
-
 use crate::parser::parser::{
     Sexp,
     SexpT
 };
-use crate::errors::EvalError;
+use crate::errors::{
+    EvalError,
+    Error
+};
 
 
-pub fn print(sexp: Result<Sexp, EvalError>) {
+pub fn print(sexp: Result<Sexp, Error>) {
     match sexp {
         Ok(s) => match s.sexpt {
             SexpT::Atom(a) => print!("{}", a),

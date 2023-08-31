@@ -1,1 +1,1 @@
-(eval (eval (quote foo)))
+(eval (quote foo))
