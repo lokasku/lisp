@@ -38,12 +38,18 @@ pub enum SexpT {
     List(Vec<Sexp>)
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Sexp {
     pub sexpt: SexpT,
     /* pub line: usize,
     pub column: usize */
     pub pos: Position
+}
+
+impl PartialEq for Sexp {
+    fn eq(&self, other: &Self) -> bool {
+        self.sexpt == other.sexpt
+    }
 }
 
 impl Sexp {

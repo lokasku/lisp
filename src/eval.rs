@@ -69,6 +69,24 @@ pub fn eval(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
                                 let list = eval(Ok(v.get(2).unwrap().clone()))?;
                                 builtins::cons(item, list)
                              }
+                             "atom" => {
+                                if let Err(e) = args_checker(sn.to_owned(), 1, v.clone(), *pos) {
+                                    return Err(e)
+                                }
+                                let sexp = eval(Ok(v.get(1).unwrap().clone()))?;
+                                Ok(builtins::atom(sexp))
+                              }
+                              "eq" => {
+                                  if let Err(e) = args_checker(sn.to_owned(), 2, v.clone(), *pos) {
+                                      return Err(e)
+                                   }
+                                   let sexp1 = eval(Ok(v.get(1).unwrap().clone()))?;
+                                   let sexp2 = eval(Ok(v.get(2).unwrap().clone()))?;
+                                   Ok(builtins::eq(sexp1, sexp2))
+                              }
+                              /*"cond" => {
+                                  builtins::cond(v.get(1..).unwrap().clone())
+                              }*/
                             _ => Err(Error::EvalError(EvalError::UnboundSymbol(sn.to_owned(), *pos)))
                         }
                         _ => Err(Error::EvalError(EvalError::IllegalFunctionCall(*pos)))

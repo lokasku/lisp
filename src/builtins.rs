@@ -1,5 +1,6 @@
 use crate::parser::parser::{
     Sexp,
+    Atom,
     SexpT,
     independant_sexp
 };
@@ -57,3 +58,19 @@ pub fn cons(item: Sexp, list: Sexp) -> Result<Sexp, Error> {
         Err(Error::EvalError(EvalError::TypeMismatch(list.sexpt, String::from("list"), list.pos)))
     }
 }
+
+pub fn atom(sexp: Sexp) -> Sexp {
+    match sexp.sexpt {
+        SexpT::Atom(_) => independant_sexp(SexpT::Atom(Atom::Symbol("t".to_owned()))),
+        SexpT::List(_) => independant_sexp(SexpT::List(Vec::new()))
+    }
+}
+
+pub fn eq(left: Sexp, right: Sexp) -> Sexp {
+    match left == right {
+        true => independant_sexp(SexpT::Atom(Atom::Symbol("t".to_owned()))),
+        false => independant_sexp(SexpT::List(Vec::new()))
+    }
+}
+
+// pub fn cond(conditions: Vec<Sexp>) -> Result<Sexp, Error> {}
