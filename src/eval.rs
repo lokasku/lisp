@@ -21,7 +21,6 @@ fn args_checker(name: String, expected: usize, args: Vec<Sexp>, pos: Position) -
 }
 
 pub fn eval(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
-    println!("CALL TO EVAL");
     match ast {
         Ok(ref sexp @ Sexp { ref sexpt, pos }) => match sexpt {
             SexpT::Atom(atom) => match atom {
@@ -40,7 +39,7 @@ pub fn eval(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
                                 if let Err(e) = args_checker(sn.to_owned(), 1, v.clone(), *pos) {
                                     return Err(e)
                                 }
-                                eval(Ok(v.get(1).unwrap().clone()))
+                                eval(eval(Ok(v.get(1).unwrap().clone())))
                             }
                             "quote" => {
                                 if let Err(e) = args_checker(sn.to_owned(), 1, v.clone(), *pos) {
@@ -48,6 +47,28 @@ pub fn eval(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
                                 }
                                 Ok(builtins::quote(v.get(1).unwrap().clone()))
                             }
+                            "car" => {
+                                if let Err(e) = args_checker(sn.to_owned(), 1, v.clone(), *pos) {
+                                    return Err(e)
+                                }
+                                let list = eval(Ok(v.get(1).unwrap().clone()))?;
+                                builtins::car(list)
+                            }
+                            "cdr" => {
+                                if let Err(e) = args_checker(sn.to_owned(), 1, v.clone(), *pos) {
+                                    return Err(e)
+                                }
+                                let list = eval(Ok(v.get(1).unwrap().clone()))?;
+                                builtins::cdr(list)
+                             }
+                             "cons" => {
+                                if let Err(e) = args_checker(sn.to_owned(), 2, v.clone(), *pos) {
+                                    return Err(e)
+                                }
+                                let item = eval(Ok(v.get(1).unwrap().clone()))?;
+                                let list = eval(Ok(v.get(2).unwrap().clone()))?;
+                                builtins::cons(item, list)
+                             }
                             _ => Err(Error::EvalError(EvalError::UnboundSymbol(sn.to_owned(), *pos)))
                         }
                         _ => Err(Error::EvalError(EvalError::IllegalFunctionCall(*pos)))

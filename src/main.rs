@@ -6,15 +6,11 @@ pub mod builtins;
 use std::fs;
 use std::env;
 
-use parser::parser::{
-    quote,
-    Parser
-};
+use parser::parser::Parser;
 use eval::eval;
 
 use crate::errors::{
     ReadError,
-    EvalError,
     Error
 };
 
@@ -28,12 +24,12 @@ fn main() {
 
     let mut parser = Parser::new(&content);
 
-    loop {
+    loop { // LOOP
         let ast = parser.read();
         if let Err(Error::ReadError(ReadError::UnexpectedEOF)) = ast {
             break;
         } else {
-            builtins::print(eval(ast));
+            builtins::print(eval(ast)); // PRINT EVAL READ
         }
     }
 }

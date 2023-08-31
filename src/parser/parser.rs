@@ -55,29 +55,6 @@ impl Sexp {
     }
 }
 
-
-pub fn quote(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
-    match ast {
-        Ok(ast) => Ok(
-            Sexp::new(
-                SexpT::List(
-                    vec![
-                        Sexp::new(
-                            SexpT::Atom(Atom::Symbol("quote".to_owned())),
-                            0,
-                            0
-                        ),
-                        ast
-                    ]
-                ),
-                0,
-                0
-            )
-        ),
-        Err(e) => Err(e)
-    }
-}
-
 #[derive(Debug)]
 pub struct Parser<'src> {
     input: Peekable<Lexer<'src>>
@@ -122,4 +99,8 @@ impl<'src> Parser<'src> { pub fn new(input: &'src str) -> Self {
             None => Err(Error::ReadError(ReadError::UnexpectedEOF))
         }
     }
+}
+
+pub fn independant_sexp(sexpt: SexpT) -> Sexp {
+    Sexp::new(sexpt, 0, 0)
 }
