@@ -1,2 +1,5 @@
-(cond (() 1)
-      ((cdr (quote (1 2 3))) 2))
+(car (cons (quote a)
+      (cons (eval (quote (atom
+        (cond (() 1)
+          (t 2)
+          (t 3))))) ())))

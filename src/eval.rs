@@ -2,7 +2,7 @@ use crate::parser::Position;
 use crate::parser::parser::{
     Sexp,
     SexpT,
-    Atom
+    Atom, independant_sexp
 };
 use crate::errors::{
     EvalError,
@@ -27,6 +27,14 @@ pub fn eval(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
                 Atom::Symbol(s) => {
                     if PRIMITIVES.contains(&s.as_str()) {
                         return Ok(sexp.clone())
+                    }
+                    if s == &"t".to_owned() {
+                        return Ok(independant_sexp(SexpT::List(
+                            vec![
+                                independant_sexp(SexpT::Atom(Atom::Symbol("quote".to_owned()))),
+                                independant_sexp(SexpT::Atom(Atom::Symbol("t".to_owned())))
+                                ]
+                        )));
                     }
                     Err(Error::EvalError(EvalError::UnboundSymbol(s.to_owned(), pos)))
                 }
