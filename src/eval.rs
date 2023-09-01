@@ -84,9 +84,12 @@ pub fn eval(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
                                    let sexp2 = eval(Ok(v.get(2).unwrap().clone()))?;
                                    Ok(builtins::eq(sexp1, sexp2))
                               }
-                              /*"cond" => {
-                                  builtins::cond(v.get(1..).unwrap().clone())
-                              }*/
+                              "cond" => {
+                                  if (v.len() - 1) < 1 {
+                                      return Err(Error::EvalError(EvalError::ArityMismatch(sn.to_owned(), 0, 2, *pos)));
+                                  }
+                                  builtins::cond(v.get(1..).unwrap().to_vec())
+                              }
                             _ => Err(Error::EvalError(EvalError::UnboundSymbol(sn.to_owned(), *pos)))
                         }
                         _ => Err(Error::EvalError(EvalError::IllegalFunctionCall(*pos)))

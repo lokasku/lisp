@@ -8,6 +8,7 @@ use crate::errors::{
     Error,
     EvalError
 };
+use crate::eval::eval;
 
 
 pub fn print(sexp: Result<Sexp, Error>) {
@@ -73,4 +74,20 @@ pub fn eq(left: Sexp, right: Sexp) -> Sexp {
     }
 }
 
-// pub fn cond(conditions: Vec<Sexp>) -> Result<Sexp, Error> {}
+pub fn cond(conditions: Vec<Sexp>) -> Result<Sexp, Error> {
+    for c in conditions {
+        match c.sexpt {
+            SexpT::Atom(_) => return Err(Error::EvalError(EvalError::TypeMismatch(c.sexpt, String::from("list"), c.pos))),
+            SexpT::List(v) => {
+                if v.len() != 2 {
+                    return Err(Error::EvalError(EvalError::ArityMismatch("condition".to_owned(), v.len(), 2, c.pos)))
+                }
+                let cond = eval(Ok(v.get(0).unwrap().clone()))?;
+                if cond != independant_sexp(SexpT::List(Vec::new())) {
+                    return Ok(v.get(1).unwrap().clone())
+                }
+            }
+        }
+    }
+    Ok(independant_sexp(SexpT::List(Vec::new())))
+}
