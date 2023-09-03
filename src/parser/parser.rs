@@ -24,10 +24,10 @@ pub enum Atom {
 impl fmt::Display for Atom {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Atom::Symbol(s) => write!(f, "{} ", s),
-            Atom::String(s) => write!(f, "\"{}\" ", s),
-            Atom::Integer(n) => write!(f, "{} ", n),
-            Atom::Float(n) => write!(f, "{} ", n)
+            Atom::Symbol(s) => write!(f, "{}", s.to_uppercase()),
+            Atom::String(s) => write!(f, "\"{}\"", s.to_uppercase()),
+            Atom::Integer(n) => write!(f, "{}", n),
+            Atom::Float(n) => write!(f, "{}", n)
         }
     }
 }
@@ -44,6 +44,26 @@ pub struct Sexp {
     /* pub line: usize,
     pub column: usize */
     pub pos: Position
+}
+
+impl fmt::Display for Sexp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.sexpt {
+            SexpT::Atom(atom) => Atom::fmt(&atom, f),
+            SexpT::List(v) => {
+                print!("(");
+                for (i, sexp) in v.iter().enumerate() {
+                    if i == 0 {
+                        print!("{sexp}");
+                    } else {
+                        print!(" {sexp}");
+                    }
+                }
+                print!(")");
+                Ok(())
+            }
+        }
+    }
 }
 
 impl PartialEq for Sexp {

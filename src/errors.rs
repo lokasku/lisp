@@ -27,7 +27,7 @@ impl fmt::Display for ReadError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EvalError {
     IllegalFunctionCall(Position),
     ArityMismatch(String, usize, usize, Position),
@@ -53,7 +53,7 @@ impl fmt::Display for EvalError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     ReadError(ReadError),
     EvalError(EvalError)

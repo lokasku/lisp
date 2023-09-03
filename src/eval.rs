@@ -33,15 +33,15 @@ pub fn eval(ast: Result<Sexp, Error>) -> Result<Sexp, Error> {
                             vec![
                                 independant_sexp(SexpT::Atom(Atom::Symbol("quote".to_owned()))),
                                 independant_sexp(SexpT::Atom(Atom::Symbol("t".to_owned())))
-                                ]
+                            ]
                         )));
                     }
                     Err(Error::EvalError(EvalError::UnboundSymbol(s.to_owned(), pos)))
                 }
                 _ => Ok(sexp.clone()) }
-            SexpT::List(v) => match v.get(0) {             // Vec<Sexp>
-                Some(Sexp { sexpt, pos }) => match sexpt { // SexpT
-                    SexpT::Atom(atom) => match atom {      // SexpT::Atom
+            SexpT::List(v) => match v.get(0) {
+                Some(Sexp { sexpt, pos }) => match sexpt {
+                    SexpT::Atom(atom) => match atom {
                         Atom::Symbol(sn) => match sn.as_str() {
                             "eval" => {
                                 if let Err(e) = args_checker(sn.to_owned(), 1, v.clone(), *pos) {

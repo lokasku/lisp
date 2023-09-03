@@ -13,17 +13,8 @@ use crate::eval::eval;
 
 pub fn print(sexp: Result<Sexp, Error>) {
     match sexp {
-        Ok(s) => match s.sexpt {
-            SexpT::Atom(a) => print!("{}", a),
-            SexpT::List(v) => {
-                print!("(");
-                for s in v {
-                    print(Ok(s));
-                }
-                print!(") ");
-            }
-        }
-        Err(e) => println!("{}", e)
+        Ok(s) => println!("{}", s),
+        Err(e) => println!("{e}")
     }
 }
 
