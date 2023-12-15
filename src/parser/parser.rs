@@ -25,7 +25,7 @@ impl fmt::Display for Atom {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Atom::Symbol(s) => write!(f, "{}", s.to_uppercase()),
-            Atom::String(s) => write!(f, "\"{}\"", s.to_uppercase()),
+            Atom::String(s) => write!(f, "\"{}\"", s),
             Atom::Integer(n) => write!(f, "{}", n),
             Atom::Float(n) => write!(f, "{}", n)
         }
@@ -41,8 +41,6 @@ pub enum SexpT {
 #[derive(Debug, Clone)]
 pub struct Sexp {
     pub sexpt: SexpT,
-    /* pub line: usize,
-    pub column: usize */
     pub pos: Position
 }
 
@@ -86,7 +84,8 @@ pub struct Parser<'src> {
     input: Peekable<Lexer<'src>>
 }
 
-impl<'src> Parser<'src> { pub fn new(input: &'src str) -> Self {
+impl<'src> Parser<'src> {
+    pub fn new(input: &'src str) -> Self {
         Self {
             input: Lexer::new(input).peekable()
         }
@@ -107,7 +106,7 @@ impl<'src> Parser<'src> { pub fn new(input: &'src str) -> Self {
                                         break; // we have reached the end of the list
                                     }
                                     Err(_) => return self.read(), // we know that this call will return the error
-                                    _ => content.push(self.read()?)
+                                    _ => content.push(self.read()?) // for Ok(_)
                                 }
                                 None => return Err(Error::ReadError(ReadError::UnclosedParen(Position(line, column))))
                             }

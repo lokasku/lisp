@@ -1,5 +1,5 @@
 {
-  description = "Desugar LISP implementation of McCarthy's Meta-Circular Evaluator.";
+  description = "Lisp in Rust";
   
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
