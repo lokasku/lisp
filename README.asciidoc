@@ -1,0 +1,30 @@
+= Lisp
+
+A Rust implementation of the minimal Lisp described in John McCarthy's 1960 paper.
+
+== Features
+
+This implementation includes all seven primitive operations from the original meta-circular evaluator:
+
+* `quote`
+* `atom`
+* `eq`
+* `car`
+* `cdr`
+* `cons`
+* `cond`
+
+For reference, see Paul Graham's https://languagelog.ldc.upenn.edu/myl/llog/jmc.pdf[The Roots of Lisp] paper.
+
+== Usage
+
+[source,shell]
+----
+git clone https://github.com/Lokasku/lisp
+cd lisp
+cargo run --release
+----
+
+== Acknowledgments
+
+Thanks to https://github.com/mesabloo[Mesabloo] and https://github.com/gystek[Gustek] for their contributions to this project.
